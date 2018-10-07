@@ -16,6 +16,7 @@ import edu.stanford.bmir.protege.web.shared.DirtyChangedEvent;
 import edu.stanford.bmir.protege.web.shared.DirtyChangedHandler;
 import edu.stanford.bmir.protege.web.shared.user.EmailAddress;
 
+import javax.inject.Inject;
 import java.util.Optional;
 
 /**
@@ -50,8 +51,8 @@ public class EmailAddressEditorImpl extends Composite implements EmailAddressEdi
 
     }
 
+    @Inject
     public EmailAddressEditorImpl() {
-        WebProtegeClientBundle.BUNDLE.style().ensureInjected();
         HTMLPanel rootElement = ourUiBinder.createAndBindUi(this);
         initWidget(rootElement);
     }
@@ -105,5 +106,11 @@ public class EmailAddressEditorImpl extends Composite implements EmailAddressEdi
     @Override
     public boolean isWellFormed() {
         return emailAddressField.getText().trim().equals(confirmEmailAddressField.getText().trim());
+    }
+
+    @Override
+    protected void onAttach() {
+        super.onAttach();
+        emailAddressField.setFocus(true);
     }
 }

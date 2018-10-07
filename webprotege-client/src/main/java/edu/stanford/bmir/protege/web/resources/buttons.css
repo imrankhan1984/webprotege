@@ -215,7 +215,7 @@
 }
 
 .wp-topbar__btn:hover {
-    color: #101010;
+    color: literal("var(--btn--hover--color)");
 }
 
 .wp-btn-up {
@@ -246,7 +246,6 @@
 .wp-btn-down {
     background-color: #aaaaaa;
     background-image: downArrowIconUrl;
-    mask: moveToParentIconUrl no-repeat;
     background-repeat: no-repeat;
     color: white;
     width: 20px;
@@ -273,7 +272,7 @@
     -moz-transition: background-color 0.15s ease-in-out;
     -webkit-transition: background-color 0.15s ease-in-out;
 
-    background-color: #505050;
+    background-color: literal("var(--primary--color)");
     width: 20px;
     height: 20px;
     margin: 0;

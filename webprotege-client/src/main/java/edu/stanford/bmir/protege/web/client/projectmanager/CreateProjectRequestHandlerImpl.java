@@ -1,7 +1,10 @@
 package edu.stanford.bmir.protege.web.client.projectmanager;
 
-import edu.stanford.bmir.protege.web.client.library.dlg.WebProtegeDialog;
-import edu.stanford.bmir.protege.web.client.project.CreateNewProjectDialogController;
+import edu.stanford.bmir.protege.web.client.Messages;
+import edu.stanford.bmir.protege.web.client.library.dlg.DialogButton;
+import edu.stanford.bmir.protege.web.client.library.modal.ModalManager;
+import edu.stanford.bmir.protege.web.client.library.modal.ModalPresenter;
+import edu.stanford.bmir.protege.web.client.project.CreateNewProjectPresenter;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -18,15 +21,36 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class CreateProjectRequestHandlerImpl implements CreateProjectRequestHandler {
 
     @Nonnull
-    private final Provider<CreateNewProjectDialogController> dialogController;
+    private final Provider<CreateNewProjectPresenter> presenterProvider;
+
+    @Nonnull
+    private final ModalManager modalManager;
+
+    @Nonnull
+    private final Messages messages;
 
     @Inject
-    public CreateProjectRequestHandlerImpl(@Nonnull Provider<CreateNewProjectDialogController> dialogController) {
-        this.dialogController = checkNotNull(dialogController);
+    public CreateProjectRequestHandlerImpl(@Nonnull Provider<CreateNewProjectPresenter> presenterProvider,
+                                           @Nonnull ModalManager modalManager,
+                                           @Nonnull Messages messages) {
+        this.presenterProvider = checkNotNull(presenterProvider);
+        this.modalManager = checkNotNull(modalManager);
+        this.messages = checkNotNull(messages);
+
     }
 
     @Override
     public void handleCreateProjectRequest() {
-        WebProtegeDialog.showDialog(dialogController.get());
+        CreateNewProjectPresenter presenter = presenterProvider.get();
+        ModalPresenter modalPresenter = modalManager.createPresenter();
+        modalPresenter.setTitle(messages.createProject());
+        modalPresenter.setEscapeButton(DialogButton.CANCEL);
+        DialogButton createProjectButton = DialogButton.get(messages.createProject());
+        modalPresenter.setPrimaryButton(createProjectButton);
+        modalPresenter.setView(presenter.getView());
+        modalPresenter.setButtonHandler(createProjectButton, closer -> {
+            presenter.validateAndCreateProject(closer::closeModal);
+        });
+        modalManager.showModal(modalPresenter);
     }
 }

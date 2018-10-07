@@ -110,6 +110,10 @@ public class HierarchyFieldPresenter {
         updateButtonState();
     }
 
+    public void setSyncWithCurrentSelectionVisible(boolean visible) {
+        view.setSyncWithCurrentSelectionVisible(visible);
+    }
+
     private void handleShowPopupHierarchy(UIObject target) {
         hierarchyId.ifPresent(id -> {
             if(!hierarchyPopupPresenter.isPresent()) {
@@ -257,6 +261,7 @@ public class HierarchyFieldPresenter {
         popup.getFirstSelectedElement()
                 .map(EntityNode::getEntityData)
                 .ifPresent(this::setEntityAndFireEvents);
+        view.requestFocus();
     }
 
     public Optional<OWLEntityData> getEntity() {

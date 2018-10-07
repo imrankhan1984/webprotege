@@ -14,11 +14,11 @@
         }
         .editor {
             display: block;
-            border: 1px solid #f0f0f0;
+            border: 1px solid literal("var(--separator--color)");
         }
     </ui:style>
     <g:HTMLPanel addStyleNames="{style.main}">
-        <gwtcodemirror:GWTCodeMirror ui:field="bodyField" width="60em" height="10em" addStyleNames="{style.editor}"/>
+        <gwtcodemirror:GWTCodeMirror ui:field="bodyField" height="10em" addStyleNames="{style.editor}"/>
         <g:Anchor text="{msg.markdownSupported}" target="_blank" href="http://www.markdowntutorial.com/" addStyleNames="{style.help}"/>
     </g:HTMLPanel>
 </ui:UiBinder>

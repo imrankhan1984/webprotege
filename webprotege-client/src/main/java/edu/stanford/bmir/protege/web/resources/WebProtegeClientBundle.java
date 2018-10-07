@@ -175,6 +175,9 @@ public interface WebProtegeClientBundle extends ClientBundle {
     @Source("topbar.css")
     TopBar laf();
 
+    @Source("modal.css")
+    ModalCss modal();
+
     @Source("toolbar.css")
     ToolbarCss toolbar();
 
@@ -221,6 +224,9 @@ public interface WebProtegeClientBundle extends ClientBundle {
 
         @ClassName("wp-form-group")
         String formGroup();
+
+        @ClassName("wp-form-stretch")
+        String formStretch();
 
         @ClassName("wp-form-label")
         String formLabel();
@@ -278,6 +284,9 @@ public interface WebProtegeClientBundle extends ClientBundle {
 
         String commentIconInset();
 
+        @ClassName("wp-comment-small-filled-icon")
+        String commentSmallFilledIcon();
+
         String derivedInformation();
 
         String errorBorder();
@@ -298,6 +307,21 @@ public interface WebProtegeClientBundle extends ClientBundle {
 
         @ClassName("wp-panel-neutral")
         String panelNeutral();
+
+        @ClassName("wp-form_section-checkbox")
+        String formSectionCheckBox();
+
+        @ClassName("wp-form__horizontal-radio-button-group")
+        String formHorizontalRadioButtonGroup();
+
+        @ClassName("home-icon")
+        String homeIcon();
+
+        @ClassName("wp-form__text-block")
+        String formTextBlock();
+
+        @ClassName("wp-form__iri-field")
+        String formIriField();
     }
 
     interface DateTimePicker extends CssResource {
@@ -335,6 +359,11 @@ public interface WebProtegeClientBundle extends ClientBundle {
 
         @ClassName("wp-topbar__separator")
         String topBarSeparator();
+
+        @ClassName("wp-topbar__home-icon")
+        String topBarHomeIcon();
+
+
     }
 
     interface LoginCss extends CssResource {
@@ -407,6 +436,22 @@ public interface WebProtegeClientBundle extends ClientBundle {
 
         @ClassName("wp-toolbar__btn--highlighted")
         String highlightedToolbarButton();
+    }
+
+    interface ModalCss extends CssResource {
+
+        @ClassName("wp-modal")
+        String modal();
+
+        @ClassName("wp-modal__caption")
+        String caption();
+
+        @ClassName("wp-modal__content")
+        String content();
+
+        @ClassName("wp-modal__button-bar")
+        String buttonBar();
+
     }
 
     interface ButtonsCss extends CssResource {

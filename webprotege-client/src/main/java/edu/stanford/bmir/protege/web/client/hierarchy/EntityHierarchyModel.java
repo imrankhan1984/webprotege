@@ -56,6 +56,11 @@ public class EntityHierarchyModel implements GraphModel<EntityNode, OWLEntity>, 
         this.hierarchyNodeUpdater = checkNotNull(hierarchyNodeUpdater);
     }
 
+    @Nonnull
+    public HierarchyId getHierarchyId() {
+        return hierarchyId;
+    }
+
     public void start(@Nonnull WebProtegeEventBus eventBus, @Nonnull HierarchyId hierarchyId) {
         this.hierarchyId = checkNotNull(hierarchyId);
         hierarchyNodeUpdater.start(eventBus, this);
@@ -125,7 +130,7 @@ public class EntityHierarchyModel implements GraphModel<EntityNode, OWLEntity>, 
         result.getChildren().getPageElements().stream()
               .map(GraphNode::getUserObject)
               .forEach(node -> {
-                  nodeCache.put(parent, node);
+                  nodeCache.put(node.getEntity(), node);
                   parent2ChildMap.put(parent, node.getEntity());
               });
     }

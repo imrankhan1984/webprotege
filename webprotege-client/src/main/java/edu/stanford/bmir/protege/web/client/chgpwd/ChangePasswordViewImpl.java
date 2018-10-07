@@ -9,6 +9,8 @@ import com.google.gwt.user.client.ui.PasswordTextBox;
 import edu.stanford.bmir.protege.web.client.library.dlg.HasRequestFocus;
 import edu.stanford.bmir.protege.web.resources.WebProtegeClientBundle;
 
+import javax.inject.Inject;
+
 /**
  * Author: Matthew Horridge<br>
  * Stanford University<br>
@@ -34,6 +36,7 @@ public class ChangePasswordViewImpl extends Composite implements ChangePasswordV
     protected PasswordTextBox confirmNewPasswordField;
 
 
+    @Inject
     public ChangePasswordViewImpl() {
         WebProtegeClientBundle.BUNDLE.style().ensureInjected();
         HTMLPanel rootElement = ourUiBinder.createAndBindUi(this);
@@ -65,5 +68,11 @@ public class ChangePasswordViewImpl extends Composite implements ChangePasswordV
         oldPasswordField.setText("");
         newPasswordField.setText("");
         confirmNewPasswordField.setText("");
+    }
+
+    @Override
+    protected void onAttach() {
+        super.onAttach();
+        oldPasswordField.setFocus(true);
     }
 }

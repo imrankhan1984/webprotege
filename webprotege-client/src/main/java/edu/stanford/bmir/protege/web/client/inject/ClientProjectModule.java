@@ -1,9 +1,9 @@
 package edu.stanford.bmir.protege.web.client.inject;
 
 import com.google.gwt.storage.client.Storage;
-import com.google.gwt.view.client.MultiSelectionModel;
 import dagger.Module;
 import dagger.Provides;
+import edu.stanford.bmir.protege.web.client.bulkop.*;
 import edu.stanford.bmir.protege.web.client.change.ChangeListView;
 import edu.stanford.bmir.protege.web.client.change.ChangeListViewImpl;
 import edu.stanford.bmir.protege.web.client.crud.EntityCrudKitSettingsEditor;
@@ -14,6 +14,8 @@ import edu.stanford.bmir.protege.web.client.editor.EditorManagerSelector;
 import edu.stanford.bmir.protege.web.client.editor.EntityManagerSelectorImpl;
 import edu.stanford.bmir.protege.web.client.entity.CreateEntitiesDialogViewImpl;
 import edu.stanford.bmir.protege.web.client.entity.CreateEntityDialogView;
+import edu.stanford.bmir.protege.web.client.entity.MergeEntitiesView;
+import edu.stanford.bmir.protege.web.client.entity.MergeEntitiesViewImpl;
 import edu.stanford.bmir.protege.web.client.form.FormView;
 import edu.stanford.bmir.protege.web.client.form.FormViewImpl;
 import edu.stanford.bmir.protege.web.client.frame.ManchesterSyntaxFrameEditor;
@@ -43,18 +45,16 @@ import edu.stanford.bmir.protege.web.client.renderer.ClassIriRendererImpl;
 import edu.stanford.bmir.protege.web.client.sharing.SharingSettingsView;
 import edu.stanford.bmir.protege.web.client.sharing.SharingSettingsViewImpl;
 import edu.stanford.bmir.protege.web.client.tag.*;
-import edu.stanford.bmir.protege.web.client.watches.WatchTypeSelectorView;
-import edu.stanford.bmir.protege.web.client.watches.WatchTypeSelectorViewImpl;
+import edu.stanford.bmir.protege.web.client.watches.WatchView;
+import edu.stanford.bmir.protege.web.client.watches.WatchViewImpl;
 import edu.stanford.bmir.protege.web.shared.entity.EntityNode;
 import edu.stanford.bmir.protege.web.shared.inject.ProjectSingleton;
-import edu.stanford.bmir.protege.web.shared.lang.LanguageCode;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
+import edu.stanford.protege.gwt.graphtree.client.MultiSelectionModel;
 import edu.stanford.protege.gwt.graphtree.client.TreeWidget;
-import edu.stanford.protege.gwt.graphtree.shared.tree.TreeNode;
 import org.semanticweb.owlapi.model.OWLEntity;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -123,7 +123,7 @@ public class ClientProjectModule {
     }
 
     @Provides
-    WatchTypeSelectorView provideWatchTypeSelectorView(WatchTypeSelectorViewImpl view) {
+    WatchView provideWatchTypeSelectorView(WatchViewImpl view) {
         return view;
     }
 
@@ -157,7 +157,7 @@ public class ClientProjectModule {
 
     @Provides
     TreeWidget<EntityNode, OWLEntity> providesEntityHierarchyTree() {
-        MultiSelectionModel<TreeNode<EntityNode>> selectionModel = new MultiSelectionModel<>(TreeNode::getId);
+        MultiSelectionModel selectionModel = new MultiSelectionModel();
         return new TreeWidget<>(selectionModel);
     }
 
@@ -338,6 +338,41 @@ public class ClientProjectModule {
 
     @Provides
     HierarchyPopupView provideHierarchyPopupView(HierarchyPopupViewImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    BulkEditOperationViewContainer provideBulkEditOperationViewContainer(BulkEditOperationViewContainerImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    SetAnnotationValueView provideSetAnnotationValueView(SetAnnotationValueViewImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    EditAnnotationsView provideReplaceAnnotationValuesView(EditAnnotationsViewImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    MoveToParentView provideMoveToParentView(MoveToParentViewImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    MergeEntitiesView provideMergeEntitiesView(MergeEntitiesViewImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    AnnotationSimpleMatchingCriteriaView provideAnnotationSimpleMatchingCriteriaView(AnnotationSimpleMatchingCriteriaViewImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    CommitMessageInputView provideCommitMessageInputView(CommitMessageInputViewImpl impl) {
         return impl;
     }
 }

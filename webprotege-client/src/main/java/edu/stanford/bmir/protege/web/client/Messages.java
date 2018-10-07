@@ -3,6 +3,7 @@ package edu.stanford.bmir.protege.web.client;
 
 import com.google.gwt.i18n.client.LocalizableResource;
 import com.google.gwt.safehtml.shared.SafeHtml;
+import org.semanticweb.owlapi.model.EntityType;
 
 import java.util.Optional;
 
@@ -1042,7 +1043,7 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
 
 
     @DefaultMessage("This operation will merge the selected {0} into another {0}.<br><br>" +
-            "In the next step you should select another {0}. The currently selected {0} will be merged into this {0}.")
+            "Specify a class name in the field below.  The currently selected {0} will be merged into this {0}.")
     @Key("merge.description")
     String merge_description(String lowerCaseTypeName);
 
@@ -1053,6 +1054,10 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     @DefaultMessage("Do you want to merge entities?")
     @Key("merge.confirmMessage")
     String merge_confirmMergeMessage();
+
+    @DefaultMessage("Entity Tags")
+    @Key("tags.entityTags")
+    String tags_entityTags();
 
     @DefaultMessage("Tags...")
     @Key("tags.edit")
@@ -1228,4 +1233,16 @@ public interface Messages extends com.google.gwt.i18n.client.Messages {
     @DefaultMessage("Parents")
     @Key("hierarchy.parents")
     String hierarchy_parents();
+
+    @DefaultMessage("Watches")
+    @Key("watch.watches")
+    String watch_watches();
+
+    @DefaultMessage("Edit Comment")
+    @Key("comments.editComment")
+    String comments_editComment();
+
+    @DefaultMessage("Search for {0}")
+    @Key("search.searchFor")
+    String searchFor(String entityType);
 }

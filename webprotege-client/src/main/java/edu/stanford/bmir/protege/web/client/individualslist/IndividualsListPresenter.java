@@ -1,6 +1,7 @@
 package edu.stanford.bmir.protege.web.client.individualslist;
 
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSet;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.user.client.Timer;
@@ -91,6 +92,8 @@ public class IndividualsListPresenter implements EntityNodeIndex {
         }
     };
 
+    private MessageBox messageBox;
+
     @Inject
     public IndividualsListPresenter(IndividualsListView view,
                                     @Nonnull ProjectId projectId,
@@ -99,7 +102,7 @@ public class IndividualsListPresenter implements EntityNodeIndex {
                                     LoggedInUserProjectPermissionChecker permissionChecker,
                                     HierarchyFieldPresenter hierarchyFieldPresenter,
                                     Messages messages,
-                                    @Nonnull CreateEntityPresenter createEntityPresenter, EntityNodeUpdater entityNodeUpdater) {
+                                    @Nonnull CreateEntityPresenter createEntityPresenter, EntityNodeUpdater entityNodeUpdater, MessageBox messageBox) {
         this.projectId = projectId;
         this.selectionModel = selectionModel;
         this.permissionChecker = permissionChecker;
@@ -109,6 +112,7 @@ public class IndividualsListPresenter implements EntityNodeIndex {
         this.messages = messages;
         this.createEntityPresenter = createEntityPresenter;
         this.entityNodeUpdater = entityNodeUpdater;
+        this.messageBox = messageBox;
         this.view.addSelectionHandler(this::handleSelectionChangedInView);
         this.view.setSearchStringChangedHandler(this::handleSearchStringChangedInView);
         this.view.setPageNumberChangedHandler(pageNumber -> updateList());
@@ -246,7 +250,7 @@ public class IndividualsListPresenter implements EntityNodeIndex {
                                              this::handleIndividualsCreated,
                                              (projectId, createFromText, langTag)
                                                      -> new CreateNamedIndividualsAction(projectId,
-                                                                                         currentType.orElse(DataFactory.getOWLThing()),
+                                                                                         ImmutableSet.of(currentType.orElse(DataFactory.getOWLThing())),
                                                                                          createFromText,
                                                                                          langTag));
     }
@@ -276,7 +280,7 @@ public class IndividualsListPresenter implements EntityNodeIndex {
             title = messages.delete_entity_title("individuals");
             subMessage = "Are you sure you want to delete " + sel.size() + " individuals?";
         }
-        MessageBox.showConfirmBox(title,
+        messageBox.showConfirmBox(title,
                                   subMessage,
                                   CANCEL, DELETE,
                                   this::deleteSelectedIndividuals,

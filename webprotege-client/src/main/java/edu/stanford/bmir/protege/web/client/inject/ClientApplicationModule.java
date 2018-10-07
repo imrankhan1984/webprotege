@@ -13,11 +13,12 @@ import dagger.Module;
 import dagger.Provides;
 import edu.stanford.bmir.protege.web.client.Messages;
 import edu.stanford.bmir.protege.web.client.app.*;
+import edu.stanford.bmir.protege.web.client.chgpwd.ChangePasswordView;
+import edu.stanford.bmir.protege.web.client.chgpwd.ChangePasswordViewImpl;
 import edu.stanford.bmir.protege.web.client.chgpwd.ResetPasswordView;
 import edu.stanford.bmir.protege.web.client.chgpwd.ResetPasswordViewImpl;
 import edu.stanford.bmir.protege.web.client.collection.*;
-import edu.stanford.bmir.protege.web.client.dispatch.SignInRequiredHandler;
-import edu.stanford.bmir.protege.web.client.dispatch.SignInRequiredHandlerImpl;
+import edu.stanford.bmir.protege.web.client.dispatch.*;
 import edu.stanford.bmir.protege.web.client.editor.EditorPortletView;
 import edu.stanford.bmir.protege.web.client.editor.EditorPortletViewImpl;
 import edu.stanford.bmir.protege.web.client.entity.DeprecatedEntitiesView;
@@ -27,16 +28,25 @@ import edu.stanford.bmir.protege.web.client.filter.FilterViewImpl;
 import edu.stanford.bmir.protege.web.client.form.FormElementView;
 import edu.stanford.bmir.protege.web.client.form.FormElementViewImpl;
 import edu.stanford.bmir.protege.web.client.help.*;
+import edu.stanford.bmir.protege.web.client.issues.CommentEditorView;
+import edu.stanford.bmir.protege.web.client.issues.CommentEditorViewImpl;
 import edu.stanford.bmir.protege.web.client.issues.CommentedEntitiesView;
 import edu.stanford.bmir.protege.web.client.issues.CommentedEntitiesViewImpl;
 import edu.stanford.bmir.protege.web.client.lang.LangCodesProvider;
 import edu.stanford.bmir.protege.web.client.lang.LanguageCodes;
+import edu.stanford.bmir.protege.web.client.library.modal.ModalView;
+import edu.stanford.bmir.protege.web.client.library.modal.ModalViewImpl;
+import edu.stanford.bmir.protege.web.client.library.msgbox.InputBox;
+import edu.stanford.bmir.protege.web.client.library.msgbox.InputBoxView;
+import edu.stanford.bmir.protege.web.client.library.msgbox.InputBoxViewImpl;
 import edu.stanford.bmir.protege.web.client.login.LoginView;
 import edu.stanford.bmir.protege.web.client.login.LoginViewImpl;
 import edu.stanford.bmir.protege.web.client.login.SignInRequestHandler;
 import edu.stanford.bmir.protege.web.client.login.SignInRequestHandlerImpl;
 import edu.stanford.bmir.protege.web.client.logout.LogoutView;
 import edu.stanford.bmir.protege.web.client.logout.LogoutViewImpl;
+import edu.stanford.bmir.protege.web.client.mail.EmailAddressEditor;
+import edu.stanford.bmir.protege.web.client.mail.EmailAddressEditorImpl;
 import edu.stanford.bmir.protege.web.client.match.*;
 import edu.stanford.bmir.protege.web.client.pagination.PaginatorView;
 import edu.stanford.bmir.protege.web.client.pagination.PaginatorViewImpl;
@@ -81,6 +91,7 @@ import edu.stanford.bmir.protege.web.shared.inject.ApplicationSingleton;
 import edu.stanford.bmir.protege.web.shared.inject.ProjectSingleton;
 import edu.stanford.bmir.protege.web.shared.lang.LanguageCode;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 /**
@@ -487,5 +498,33 @@ public class ClientApplicationModule {
         return provider.get();
     }
 
+    @Provides
+    ModalView provideModalView(@Nonnull ModalViewImpl view) {
+        return view;
+    }
 
+    @Provides
+    ChangePasswordView provideChangePasswordView(@Nonnull ChangePasswordViewImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    DispatchErrorMessageDisplay provideDispatchErrorMessageDisplay(@Nonnull MessageBoxErrorDisplay display) {
+        return display;
+    }
+
+    @Provides
+    ProgressDisplay provideProgressDisplay(ProgressDisplayImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    EmailAddressEditor provideEmailAddressEditor(@Nonnull EmailAddressEditorImpl impl) {
+        return impl;
+    }
+
+    @Provides
+    InputBoxView providesInputBoxView(InputBoxViewImpl impl) {
+        return impl;
+    }
 }

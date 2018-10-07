@@ -1,7 +1,7 @@
 package edu.stanford.bmir.protege.web.client.hierarchy;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.view.client.SelectionChangeEvent;
 import edu.stanford.bmir.protege.web.client.Messages;
 import edu.stanford.bmir.protege.web.client.action.UIAction;
 import edu.stanford.bmir.protege.web.client.entity.CreateEntityPresenter;
@@ -12,7 +12,7 @@ import edu.stanford.bmir.protege.web.client.library.dlg.WebProtegeDialog;
 import edu.stanford.bmir.protege.web.client.portlet.AbstractWebProtegePortletPresenter;
 import edu.stanford.bmir.protege.web.client.portlet.PortletAction;
 import edu.stanford.bmir.protege.web.client.portlet.PortletUi;
-import edu.stanford.bmir.protege.web.client.search.SearchDialogController;
+import edu.stanford.bmir.protege.web.client.search.SearchModal;
 import edu.stanford.bmir.protege.web.client.tag.TagVisibilityPresenter;
 import edu.stanford.bmir.protege.web.client.watches.WatchPresenter;
 import edu.stanford.bmir.protege.web.shared.dispatch.actions.CreateAnnotationPropertiesAction;
@@ -24,19 +24,18 @@ import edu.stanford.bmir.protege.web.shared.hierarchy.HierarchyId;
 import edu.stanford.bmir.protege.web.shared.lang.DisplayNameSettingsChangedEvent;
 import edu.stanford.bmir.protege.web.shared.project.ProjectId;
 import edu.stanford.bmir.protege.web.shared.selection.SelectionModel;
+import edu.stanford.protege.gwt.graphtree.client.SelectionChangeEvent;
 import edu.stanford.protege.gwt.graphtree.client.TreeWidget;
 import edu.stanford.protege.gwt.graphtree.shared.tree.impl.GraphTreeNodeModel;
 import edu.stanford.webprotege.shared.annotations.Portlet;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLDataProperty;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.util.Optional;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static edu.stanford.bmir.protege.web.shared.access.BuiltInAction.*;
 import static edu.stanford.bmir.protege.web.shared.hierarchy.HierarchyId.*;
 import static edu.stanford.protege.gwt.graphtree.shared.tree.RevealMode.REVEAL_FIRST;
@@ -91,16 +90,13 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
     private final CreateEntityPresenter createEntityPresenter;
 
     @Nonnull
-    private final DeleteEntityPresenter deleteEntityPresenter;
+    private final DeleteEntitiesPresenter deleteEntitiesPresenter;
 
     @Nonnull
     private final EntityHierarchyContextMenuPresenterFactory contextMenuPresenterFactory;
 
     @Nonnull
     private final WatchPresenter watchPresenter;
-
-    @Nonnull
-    private final SearchDialogController searchDialogController;
 
     @Nonnull
     private final HierarchyActionStatePresenter actionStatePresenter;
@@ -113,6 +109,9 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
 
     @Nonnull
     private final TagVisibilityPresenter tagVisibilityPresenter;
+
+    @Nonnull
+    private final SearchModal searchModal;
 
     @Nonnull
     private final TreeWidgetUpdaterFactory updaterFactory;
@@ -134,16 +133,15 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
                                              @Nonnull TreeWidget<EntityNode, OWLEntity> annotationPropertyTree,
                                              @Nonnull EntityNodeHtmlRenderer renderer,
                                              @Nonnull CreateEntityPresenter createEntityPresenter,
-                                             @Nonnull DeleteEntityPresenter deleteEntityPresenter,
+                                             @Nonnull DeleteEntitiesPresenter deleteEntitiesPresenter,
                                              @Nonnull EntityHierarchyContextMenuPresenterFactory contextMenuPresenterFactory,
                                              @Nonnull WatchPresenter watchPresenter,
-                                             @Nonnull SearchDialogController searchDialogController,
                                              @Nonnull HierarchyActionStatePresenter actionStatePresenter,
                                              @Nonnull Provider<EntityHierarchyDropHandler> entityHierarchyDropHandlerProvider,
                                              @Nonnull FilterView filterView,
                                              @Nonnull TagVisibilityPresenter tagVisibilityPresenter,
                                              @Nonnull DisplayNameRenderer displayNameRenderer,
-                                             @Nonnull TreeWidgetUpdaterFactory updaterFactory) {
+                                             @Nonnull SearchModal searchModal, @Nonnull TreeWidgetUpdaterFactory updaterFactory) {
         super(selectionModel, projectId, displayNameRenderer);
         this.view = view;
         this.messages = messages;
@@ -159,14 +157,14 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
         this.annotationPropertyTree = annotationPropertyTree;
         this.renderer = renderer;
         this.createEntityPresenter = createEntityPresenter;
-        this.deleteEntityPresenter = deleteEntityPresenter;
+        this.deleteEntitiesPresenter = deleteEntitiesPresenter;
         this.contextMenuPresenterFactory = contextMenuPresenterFactory;
         this.watchPresenter = watchPresenter;
-        this.searchDialogController = searchDialogController;
         this.actionStatePresenter = actionStatePresenter;
         this.entityHierarchyDropHandlerProvider = entityHierarchyDropHandlerProvider;
         this.filterView = filterView;
         this.tagVisibilityPresenter = tagVisibilityPresenter;
+        this.searchModal = searchModal;
         this.updaterFactory = updaterFactory;
     }
 
@@ -178,8 +176,11 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
         portletUi.addAction(searchAction);
         portletUi.setFilterView(filterView);
 
+        createAction.setRequiresSelection(false);
         actionStatePresenter.registerAction(CREATE_PROPERTY, createAction);
+        deleteAction.setRequiresSelection(true);
         actionStatePresenter.registerAction(DELETE_PROPERTY, deleteAction);
+        watchAction.setRequiresSelection(true);
         actionStatePresenter.registerAction(WATCH_CHANGES, watchAction);
 
         startTree(OBJECT_PROPERTY_HIERARCHY,
@@ -196,14 +197,10 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
                   messages.hierarchy_annotationproperties(),
                   eventBus,
                   annotationPropertyHierarchyModel, annotationPropertyTree);
-
-        actionStatePresenter.start(eventBus);
-
         view.setSelectedHierarchy(OBJECT_PROPERTY_HIERARCHY);
         view.setHierarchyIdSelectedHandler(this::handleHierarchySwitched);
-
         tagVisibilityPresenter.start(filterView, view);
-
+        actionStatePresenter.start(eventBus);
         portletUi.setWidget(view);
         setSelectionInTree(getSelectedEntity());
     }
@@ -232,12 +229,12 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
                                         });
         treeWidget.setRenderer(renderer);
         treeWidget.setModel(GraphTreeNodeModel.create(model, EntityNode::getEntity));
-        treeWidget.addSelectionChangeHandler(this::handleSelectionChanged);
+        treeWidget.addSelectionChangeHandler(event -> handleSelectionChanged(event, treeWidget));
         contextMenuPresenterFactory.create(model,
                                            treeWidget,
                                            createAction,
                                            deleteAction)
-                                   .install();
+                .install();
         EntityHierarchyDropHandler entityHierarchyDropHandler = entityHierarchyDropHandlerProvider.get();
         treeWidget.setDropHandler(entityHierarchyDropHandler);
         entityHierarchyDropHandler.start(hierarchyId);
@@ -248,19 +245,23 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
         updater.start(eventBus);
     }
 
-    private void handleSelectionChanged(SelectionChangeEvent selectionChangeEvent) {
-        GWT.log("[PropertyHierarchyPortletPresenter] handling selection changed in tree");
-        transmitSelection();
+    private void handleSelectionChanged(SelectionChangeEvent selectionChangeEvent, TreeWidget<EntityNode, OWLEntity> treeWidget) {
+        if (!treeWidget.isAttached()) {
+            return;
+        }
+        GWT.log("[PropertyHierarchyPortletPresenter] handling selection changed in tree ");
+        transmitSelectionFromTree();
     }
 
     private void handleHierarchySwitched(@Nonnull HierarchyId hierarchyId) {
         GWT.log("[PropertyHierarchyPortletPresenter] handling hierarchy switched");
-        transmitSelection();
+        transmitSelectionFromTree();
     }
 
-    private void transmitSelection() {
+    private void transmitSelectionFromTree() {
+        boolean selPresent = view.getSelectedHierarchy().map(h -> !h.getSelectedKeys().isEmpty()).orElse(false);
+        actionStatePresenter.setSelectionPresent(selPresent);
         if (settingSelectionInHierarchy) {
-            GWT.log("[PropertyHierarchyPortletPresenter] Setting selection in hierarchy, returning");
             return;
         }
         try {
@@ -269,13 +270,13 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
                 Optional<OWLEntity> sel = tree.getFirstSelectedKey();
                 if (!sel.equals(getSelectedEntity())) {
                     sel.ifPresent(entity -> {
-                        GWT.log("[PropertyHierarchyPortletPresenter] Transmitting selection " + entity);
+                        GWT.log("[PropertyHierarchyPortletPresenter] Transmitting selection from tree " + entity);
                         getSelectionModel().setSelection(entity);
 
                     });
                 }
                 if (!sel.isPresent()) {
-                    GWT.log("[PropertyHierarchyPortletPresenter] Transmitting empty selection");
+                    GWT.log("[PropertyHierarchyPortletPresenter] Transmitting empty selection from tree");
                     getSelectionModel().clearSelection();
                 }
             });
@@ -294,24 +295,32 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
             return;
         }
         try {
-            GWT.log("[PropertyHierarchyPortletPresenter] Setting selection in hierarchy: " + entity);
+            GWT.log("[PropertyHierarchyPortletPresenter] Setting selection in tree for " + entity);
             settingSelectionInHierarchy = true;
-            entity.ifPresent(sel -> {
-                if (sel.isOWLObjectProperty()) {
-                    view.setSelectedHierarchy(OBJECT_PROPERTY_HIERARCHY);
-                    objectPropertyTree.revealTreeNodesForKey(sel, REVEAL_FIRST);
-                }
-                else if (sel.isOWLDataProperty()) {
-                    view.setSelectedHierarchy(DATA_PROPERTY_HIERARCHY);
-                    dataPropertyTree.revealTreeNodesForKey(sel, REVEAL_FIRST);
-                }
-                else if (sel.isOWLAnnotationProperty()) {
-                    view.setSelectedHierarchy(ANNOTATION_PROPERTY_HIERARCHY);
-                    annotationPropertyTree.revealTreeNodesForKey(sel, REVEAL_FIRST);
-                }
-            });
+            entity.ifPresent(sel -> setSelectionInTree(sel));
         } finally {
             settingSelectionInHierarchy = false;
+        }
+    }
+
+    private void setSelectionInTree(@Nonnull OWLEntity sel) {
+        if (sel.isOWLObjectProperty()) {
+            view.setSelectedHierarchy(OBJECT_PROPERTY_HIERARCHY);
+            if (!objectPropertyTree.getSelectedKeys().contains(sel)) {
+                objectPropertyTree.revealTreeNodesForKey(sel, REVEAL_FIRST);
+            }
+        }
+        else if (sel.isOWLDataProperty()) {
+            view.setSelectedHierarchy(DATA_PROPERTY_HIERARCHY);
+            if (!dataPropertyTree.getSelectedKeys().contains(sel)) {
+                dataPropertyTree.revealTreeNodesForKey(sel, REVEAL_FIRST);
+            }
+        }
+        else if (sel.isOWLAnnotationProperty()) {
+            view.setSelectedHierarchy(ANNOTATION_PROPERTY_HIERARCHY);
+            if (!annotationPropertyTree.getSelectedKeys().contains(sel)) {
+                annotationPropertyTree.revealTreeNodesForKey(sel, REVEAL_FIRST);
+            }
         }
     }
 
@@ -336,7 +345,7 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
                                                      new CreateAnnotationPropertiesAction(projectId,
                                                                                           browserText,
                                                                                           langTag,
-                                                                                          getSelectedAnnotationProperty())
+                                                                                          getSelectedAnnotationProperties())
         );
     }
 
@@ -347,7 +356,7 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
                                                      new CreateDataPropertiesAction(projectId,
                                                                                     browserText,
                                                                                     langTag,
-                                                                                    getSelectedDataProperty())
+                                                                                    getSelectedDataProperties())
         );
     }
 
@@ -358,32 +367,38 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
                                                      new CreateObjectPropertiesAction(projectId,
                                                                                       browserText,
                                                                                       langTag,
-                                                                                      getSelectedObjectProperty())
+                                                                                      getSelectedObjectProperties())
         );
     }
 
-    private Optional<OWLObjectProperty> getSelectedObjectProperty() {
-        return objectPropertyTree.getFirstSelectedKey()
-                                 .filter(sel -> sel instanceof OWLObjectProperty)
-                                 .map(sel -> (OWLObjectProperty) sel);
+    private ImmutableSet<OWLObjectProperty> getSelectedObjectProperties() {
+        return objectPropertyTree.getSelectedKeys()
+                .stream()
+                .filter(sel -> sel instanceof OWLObjectProperty)
+                .map(sel -> (OWLObjectProperty) sel)
+                .collect(toImmutableSet());
     }
 
 
-    private Optional<OWLDataProperty> getSelectedDataProperty() {
-        return dataPropertyTree.getFirstSelectedKey()
-                               .filter(sel -> sel instanceof OWLDataProperty)
-                               .map(sel -> (OWLDataProperty) sel);
+    private ImmutableSet<OWLDataProperty> getSelectedDataProperties() {
+        return dataPropertyTree.getSelectedKeys()
+                .stream()
+                .filter(sel -> sel instanceof OWLDataProperty)
+                .map(sel -> (OWLDataProperty) sel)
+                .collect(toImmutableSet());
     }
 
 
-    private Optional<OWLAnnotationProperty> getSelectedAnnotationProperty() {
-        return annotationPropertyTree.getFirstSelectedKey()
-                                     .filter(sel -> sel instanceof OWLAnnotationProperty)
-                                     .map(sel -> (OWLAnnotationProperty) sel);
+    private ImmutableSet<OWLAnnotationProperty> getSelectedAnnotationProperties() {
+        return annotationPropertyTree.getSelectedKeys()
+                .stream()
+                .filter(sel -> sel instanceof OWLAnnotationProperty)
+                .map(sel -> (OWLAnnotationProperty) sel)
+                .collect(toImmutableSet());
     }
 
     private void handleDelete() {
-        view.getSelectedHierarchy().ifPresent(treeWidget -> deleteEntityPresenter.start(treeWidget));
+        view.getSelectedHierarchy().ifPresent(treeWidget -> deleteEntitiesPresenter.start(treeWidget));
     }
 
     private void handleWatch() {
@@ -395,7 +410,7 @@ public class PropertyHierarchyPortletPresenter extends AbstractWebProtegePortlet
     }
 
     private void handleSearch() {
-        searchDialogController.setEntityTypes(OBJECT_PROPERTY, DATA_PROPERTY, ANNOTATION_PROPERTY);
-        WebProtegeDialog.showDialog(searchDialogController);
+        searchModal.setEntityTypes(OBJECT_PROPERTY, DATA_PROPERTY, ANNOTATION_PROPERTY);
+        searchModal.showModal();
     }
 }

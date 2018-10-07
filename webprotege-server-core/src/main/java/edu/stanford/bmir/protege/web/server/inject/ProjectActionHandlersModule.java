@@ -3,6 +3,9 @@ package edu.stanford.bmir.protege.web.server.inject;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
+import edu.stanford.bmir.protege.web.server.bulkop.MoveToParentActionHandler;
+import edu.stanford.bmir.protege.web.server.bulkop.EditAnnotationValuesActionHandler;
+import edu.stanford.bmir.protege.web.server.bulkop.SetAnnotationValueActionHandler;
 import edu.stanford.bmir.protege.web.server.change.GetProjectChangesActionHandler;
 import edu.stanford.bmir.protege.web.server.change.GetWatchedEntityChangesActionHandler;
 import edu.stanford.bmir.protege.web.server.change.RevertRevisionActionHandler;
@@ -12,7 +15,6 @@ import edu.stanford.bmir.protege.web.server.crud.GetEntityCrudKitSettingsActionH
 import edu.stanford.bmir.protege.web.server.crud.SetEntityCrudKitSettingsActionHandler;
 import edu.stanford.bmir.protege.web.server.csv.ImportCSVFileActionHandler;
 import edu.stanford.bmir.protege.web.server.dispatch.ProjectActionHandler;
-import edu.stanford.bmir.protege.web.server.dispatch.actions.GetRevisionsAction;
 import edu.stanford.bmir.protege.web.server.dispatch.handlers.*;
 import edu.stanford.bmir.protege.web.server.entity.GetDeprecatedEntitiesActionHandler;
 import edu.stanford.bmir.protege.web.server.entity.LookupEntitiesActionHandler;
@@ -53,7 +55,6 @@ import edu.stanford.bmir.protege.web.server.watches.RemoveWatchActionHandler;
 import edu.stanford.bmir.protege.web.server.watches.SetEntityWatchesActionHandler;
 import edu.stanford.bmir.protege.web.shared.issues.DeleteEntityCommentAction;
 import edu.stanford.bmir.protege.web.shared.issues.DeleteEntityCommentResult;
-import edu.stanford.bmir.protege.web.shared.match.GetMatchingEntitiesAction;
 
 /**
  * Matthew Horridge
@@ -565,6 +566,21 @@ public class ProjectActionHandlersModule {
 
     @Provides @IntoSet
     public ProjectActionHandler provideGetIndividualsPageContainingIndividualActionHandler(GetIndividualsPageContainingIndividualActionHandler handler) {
+        return handler;
+    }
+
+    @Provides @IntoSet
+    public ProjectActionHandler provideSetAnnotationValueActionHandler(SetAnnotationValueActionHandler handler) {
+        return handler;
+    }
+
+    @Provides @IntoSet
+    public ProjectActionHandler provideReplaceAnnotationValuesActionHandler(EditAnnotationValuesActionHandler handler) {
+        return handler;
+    }
+
+    @Provides @IntoSet
+    public ProjectActionHandler provideMoveToParentActionHandler(MoveToParentActionHandler handler) {
         return handler;
     }
 }
